@@ -11,7 +11,7 @@ type T a = Parser a
 err :: String -> Parser a
 err message cs = error (message++" near "++cs++"\n")
 
-iter :: Parser a -> Parser [a]  
+iter :: Parser a -> Parser [a]
 iter m = m # iter m >-> cons ! return [] 
 
 cons(a, b) = a:b
