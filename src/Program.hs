@@ -10,7 +10,9 @@ program = iter Statement.parse >-> \stmts -> Program stmts
 
 instance Parse T where
   parse = program
-  toString = error "Program.toString not implemented"
+  toString (Program (stmt:stmts)) = (Statement.toString stmt) ++ "\n" ++ toString' stmts where
+    toString' (stmt:stmts) = Statement.toString stmt ++ "\n" ++ toString' stmts
+    toString' [] = ""
 
 exec :: T -> [Integer] -> [Integer]
 exec (Program stmts) input = Statement.exec stmts Dictionary.empty input

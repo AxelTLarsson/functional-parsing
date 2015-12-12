@@ -55,7 +55,21 @@ exec (Read var : stmts) dict input = exec stmts modifiedDict input' where
     input' = tail input -- remove the value read for future "input"
 exec (Write expr : stmts) dict input = val : (exec stmts dict input) where
     val = Expr.value expr dict
+exec [] dict input = []
 
+-- Todo: smarter
 instance Parse Statement where
-  parse = statement
-  toString = error "Statement.toString not implemented"
+    parse = statement
+    toString (Assignment v e) = v ++ " := " ++ toString e ++ ";"
+    toString (Skip) = "skip;"
+    toString (If cond thenStmt elseStmt) = "if " ++ toString cond ++ " then\n" 
+        ++ "\t" ++ toString thenStmt
+        ++ "\nelse\n"
+        ++ "\t" ++ toString elseStmt ++ "\n"
+    toString (Begin stmts) = "begin\n" ++ toString' stmts ++ "\nend" where
+        toString' (stmt:stmts) = "\t" ++ toString stmt ++ toString' stmts
+        toString' [] = ""
+    toString (While cond stmt) = "while " ++ toString cond ++ " do\n\t"
+        ++ toString stmt
+    toString (Read var) = "read " ++ var ++ ";"
+    toString (Write expr) = "write " ++ toString expr ++ ";"
