@@ -57,19 +57,22 @@ exec (Write expr : stmts) dict input = val : (exec stmts dict input) where
     val = Expr.value expr dict
 exec [] _ _ = []
 
--- Todo: smarter
 instance Parse Statement where
     parse = statement
-    toString (Assignment v e) = v ++ " := " ++ toString e ++ ";"
-    toString (Skip) = "skip;"
-    toString (If cond thenStmt elseStmt) = "if " ++ toString cond ++ " then\n" 
-        ++ "\t" ++ toString thenStmt
-        ++ "\nelse\n"
-        ++ "\t" ++ toString elseStmt ++ "\n"
-    toString (Begin stmts) = "begin\n" ++ toString' stmts ++ "\nend" where
-        toString' (stmt:stmts') = "\t" ++ toString stmt ++ toString' stmts'
-        toString' [] = ""
-    toString (While cond stmt) = "while " ++ toString cond ++ " do\n\t"
-        ++ toString stmt
-    toString (Read var) = "read " ++ var ++ ";"
-    toString (Write expr) = "write " ++ toString expr ++ ";"
+    toString = flip prettyString ""
+
+-- take stmt, indentation, generate pretty string
+prettyString :: Statement -> String -> String
+prettyString (Assignment v e) ind = ind ++ v ++ " := " ++ Expr.toString e ++ ";\n"
+prettyString (Skip) ind = ind ++ "skip;\n"
+prettyString (If cond thenStmt elseStmt) ind = ind ++ "if " ++ Expr.toString cond ++ " then\n"
+  ++ prettyString thenStmt (ind ++ "\t")
+  ++ ind ++ "else\n"
+  ++ prettyString elseStmt (ind ++ "\t")
+prettyString (Begin stmts) ind = ind ++ "begin\n"
+  ++ foldr (\s acc -> prettyString s (ind ++ "\t") ++ acc) "" stmts
+  ++ ind ++ "end\n"
+prettyString (While cond stmt) ind = ind ++ "while " ++ Expr.toString cond ++ " do\n"
+  ++ prettyString stmt (ind ++ "\t")
+prettyString (Read var) ind = ind ++ "read " ++ var ++ ";\n"
+prettyString (Write expr) ind = ind ++ "write " ++ Expr.toString expr ++ ";\n"
