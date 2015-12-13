@@ -47,7 +47,7 @@ exec (If cond thenStmts elseStmts : stmts) dict input =
     then exec (thenStmts : stmts) dict input
     else exec (elseStmts : stmts) dict input
 exec (While cond wStmt : stmts) dict input
-    | Expr.value cond dict > 0 = exec (wStmt:stmts) dict input
+    | Expr.value cond dict > 0 = exec (wStmt: While cond wStmt : stmts) dict input
     | otherwise = exec stmts dict input
 exec (Read var : stmts) dict input = exec stmts modifiedDict input' where
     modifiedDict = Dictionary.insert (var, val) dict
@@ -55,7 +55,7 @@ exec (Read var : stmts) dict input = exec stmts modifiedDict input' where
     input' = tail input -- remove the value read for future "input"
 exec (Write expr : stmts) dict input = val : (exec stmts dict input) where
     val = Expr.value expr dict
-exec [] dict input = []
+exec [] _ _ = []
 
 -- Todo: smarter
 instance Parse Statement where
@@ -67,7 +67,7 @@ instance Parse Statement where
         ++ "\nelse\n"
         ++ "\t" ++ toString elseStmt ++ "\n"
     toString (Begin stmts) = "begin\n" ++ toString' stmts ++ "\nend" where
-        toString' (stmt:stmts) = "\t" ++ toString stmt ++ toString' stmts
+        toString' (stmt:stmts') = "\t" ++ toString stmt ++ toString' stmts'
         toString' [] = ""
     toString (While cond stmt) = "while " ++ toString cond ++ " do\n\t"
         ++ toString stmt
